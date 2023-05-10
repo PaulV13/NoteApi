@@ -1,5 +1,4 @@
 ﻿using NoteApi.Model;
-using NoteApi.Model.Dtos;
 using System.Linq.Expressions;
 
 namespace NoteApi.Data.Repositories.NoteReppository
