@@ -1,5 +1,8 @@
-﻿namespace NoteApi.Model
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace NoteApi.Model
 {
+    [Index(nameof(Email),IsUnique = true)]
     public class User
     {
         public int Id { get; set; } 

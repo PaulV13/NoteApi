@@ -6,5 +6,6 @@ namespace NoteApi.Data.Repositories.UserRepository
     public interface IUserRepository : IRepositoryGeneric<User>
     {
         Task<User?> Login(UserLoginDto userLoginDto);
+        Task<User?> GetUserByEmail(string email);
     }
 }

@@ -18,5 +18,12 @@ namespace NoteApi.Data.Repositories.UserRepository
 
             return user;
         }
+
+        public async Task<User?> GetUserByEmail(string email)
+        {
+            User? user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+            return user;
+        }
     }
 }

@@ -120,6 +120,7 @@ namespace NoteApi.Controllers
 
             Note noteUpdated = _mapper.Map<Note>(noteUpdateDto);
             noteUpdated.UserId = user.Id;
+            noteUpdated.DateCreated = note.DateCreated;
 
             await _repository.Update(noteUpdated);
 
@@ -160,7 +161,7 @@ namespace NoteApi.Controllers
 
             IEnumerable<Note> notes = await _repository.GetNotesDateCreatedDesc(n => n.UserId == user.Id);
 
-            return Ok(_mapper.Map<NoteDto>(notes));
+            return Ok(_mapper.Map<IEnumerable<NoteDto>>(notes));
         }
 
         [HttpGet("dateCreated/asc")]
@@ -173,7 +174,7 @@ namespace NoteApi.Controllers
 
             IEnumerable<Note> notes = await _repository.GetNotesDateCreatedAsc(n => n.UserId == user.Id);
 
-            return Ok(_mapper.Map<NoteDto>(notes));
+            return Ok(_mapper.Map<IEnumerable<NoteDto>>(notes));
         }
     }
 }

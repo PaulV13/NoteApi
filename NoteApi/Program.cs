@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -6,7 +7,8 @@ using NoteApi.Data;
 using NoteApi.Data.Repositories;
 using NoteApi.Data.Repositories.NoteReppository;
 using NoteApi.Data.Repositories.UserRepository;
-using Swashbuckle.AspNetCore.Filters;
+using NoteApi.Model.Dtos;
+using NoteApi.Utilities;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -53,6 +55,7 @@ collection.AddScoped(typeof(IRepositoryGeneric<>), typeof(RepositoryGeneric<>));
 builder.Services.AddScoped<INoteRepository, NoteRepository>();
 builder.Services.AddScoped<IUserRepository, UserRespository>();
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<IValidator<UserCreateDto>, UserValidator>();
 
 //Autorization
 builder.Services.AddAuthentication(options =>

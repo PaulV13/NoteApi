@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -22,12 +24,17 @@ namespace NoteApi.Controllers
         private readonly IUserRepository _userRepository;
         public IConfiguration _configuration;
         private readonly IMapper _mapper;
-        
-        public UserController(IUserRepository userRepository,IMapper mapper, IConfiguration config)
+        private readonly IValidator<UserCreateDto> _validationRules;
+        public UserController(
+            IUserRepository userRepository,
+            IMapper mapper, 
+            IConfiguration config,
+            IValidator<UserCreateDto> validationRules)
         {
             _mapper = mapper;
             _userRepository = userRepository;
             _configuration = config;
+            _validationRules = validationRules;
         }
 
         [HttpGet]
@@ -55,6 +62,7 @@ namespace NoteApi.Controllers
             if (currentUser.Id != id) return Forbid();
             
             User user = await _userRepository.GetById(id);
+            
 
             return Ok(_mapper.Map<UserDto>(user));
         }
@@ -113,14 +121,20 @@ namespace NoteApi.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> Register([FromBody] UserCreateDto userCreateDto)
         {
-            if (userCreateDto == null)
+            var validationResult = await _validationRules.ValidateAsync(userCreateDto);
+
+            if (!validationResult.IsValid)
             {
-                return BadRequest();
+                return BadRequest(validationResult.Errors);
             }
-            if (!ModelState.IsValid)
+
+            User userEmailExist = await _userRepository.GetUserByEmail(userCreateDto.Email);
+
+            if (userEmailExist != null) return BadRequest(new ErrorResponse()
             {
-                return BadRequest(ModelState);
-            }
+                StatusCode = StatusCodes.Status400BadRequest,
+                Errors = new List<string>() { "Email already exist" },
+            });
 
             User user = _mapper.Map<User>(userCreateDto);
             user.Password = Encrypt.GetSHA256(user.Password);
@@ -133,8 +147,8 @@ namespace NoteApi.Controllers
         [HttpPost("login")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(TokenResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<string>> Login([FromBody] UserLoginDto userLoginDto)
+        [ProducesResponseType(typeof(LoginErrorResponse), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<TokenResponse>> Login([FromBody] UserLoginDto userLoginDto)
         {
             if (userLoginDto.Email != null && userLoginDto.Password != null)
             {
@@ -173,12 +187,20 @@ namespace NoteApi.Controllers
                 }
                 else
                 {
-                    return BadRequest("Invalid credentials");
+                    return BadRequest(new LoginErrorResponse()
+                    {
+                        StatusCode = StatusCodes.Status400BadRequest,
+                        Message = "Invalid credentials"
+                    });
                 }
             }
             else
             {
-                return BadRequest();
+                return BadRequest(new LoginErrorResponse()
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = "Email and Password can not be null"
+                });
             }
         }
     }

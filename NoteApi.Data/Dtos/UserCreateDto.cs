@@ -1,4 +1,6 @@
-﻿namespace NoteApi.Model.Dtos
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace NoteApi.Model.Dtos
 {
     public class UserCreateDto
     {
